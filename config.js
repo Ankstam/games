@@ -1,4 +1,4 @@
-// config.js - 核心配置（纯直连低延迟版：完整保留原始优选 IP + 追加新测速 IP，禁用 ProxyIP）
+// config.js - 核心配置（纯直连低延迟版 + 全接口兼容防 1101 报错）
 
 export const DEFAULT_CONFIG = {
   // 你的 UUID（同时作为 VLESS UUID 和 Trojan 密码）
@@ -8,7 +8,7 @@ export const DEFAULT_CONFIG = {
   SECRET_TOKEN: "fuckyou888999",
 
   // 伪装站点
-  DISGUISE_URL: "https://developer.mozilla.org",
+  DISGUISE_URL: "[https://developer.mozilla.org](https://developer.mozilla.org)",
 
   // 【100% 原样保留】你原始的面板展示及优选节点地址
   CDNIP: "104.18.222.236",
@@ -27,7 +27,7 @@ export const DEFAULT_CONFIG = {
   PT12: "2087",
   PT13: "2096",
 
-  // 【完整保留】你测速截图中测出的 0% 丢包优质优选 IP（追加在原始节点之后）
+  // 【完整保留】你测速截图中测出的 0% 丢包优质优选 IP
   EXTRA_IPS: [
     { ip: "104.18.42.1", pt: "443", id: "V14_14MBs" },
     { ip: "104.18.43.1", pt: "443", id: "V15_15MBs" },
@@ -40,7 +40,7 @@ export const DEFAULT_CONFIG = {
     { ip: "104.17.33.1", pt: "443", id: "V22_4MBs" },
   ],
 
-  dohURL: "https://cloudflare-dns.com/dns-query",
+  dohURL: "[https://cloudflare-dns.com/dns-query](https://cloudflare-dns.com/dns-query)",
 };
 
 /**
@@ -55,7 +55,6 @@ export function loadRuntimeConfig(env = {}) {
   cfg.userID = String(env.uuid || env.UUID || cfg.userID).trim();
   cfg.SECRET_TOKEN = String(env.token || env.TOKEN || cfg.SECRET_TOKEN);
 
-  // 彻底禁用 ProxyIP，保持纯直连
   cfg.proxyIP = "";
   cfg.proxyPort = "";
 
@@ -72,4 +71,13 @@ export function loadRuntimeConfig(env = {}) {
   }
 
   return cfg;
+}
+
+// 兼容导出：防止任何旧版引用引发 Error 1101
+export async function loadRuntimeConfigAsync(env = {}) {
+  return loadRuntimeConfig(env);
+}
+
+export function shouldForceProxy() {
+  return false;
 }
