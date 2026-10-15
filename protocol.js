@@ -6,7 +6,6 @@ for (let i = 0; i < 256; ++i) {
 }
 
 export function isValidUUID(uuid) {
-  // 宽松验证，兼容非标准 UUID
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
 }
@@ -46,7 +45,6 @@ export function base64ToArrayBuffer(base64Str) {
 export function processProtocolHeader(buffer, userID) {
   const bytes = new Uint8Array(buffer);
 
-  // Trojan 检测
   if (buffer.byteLength >= 62 && bytes[56] === 0x0d && bytes[57] === 0x0a) {
     const uuids = userID.includes(",") ? userID.split(",") : [userID];
     const incomingHash = new TextDecoder().decode(buffer.slice(0, 56)).toLowerCase();
