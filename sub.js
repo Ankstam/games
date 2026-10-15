@@ -14,7 +14,6 @@ const XHTTP_EXTRA_CONFIG = JSON.stringify({
   },
 });
 
-// 汇总原始 IP8~IP13 与新增的 EXTRA_IPS（两边完整保留）
 function getAllEndpoints(cfg) {
   const { IP8, IP9, IP10, IP11, IP12, IP13, PT8, PT9, PT10, PT11, PT12, PT13, EXTRA_IPS = [] } = cfg;
   const originalEndpoints = [
@@ -118,7 +117,7 @@ export function getvlessConfig(cfg, hostName) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cloudflare 节点管理面板</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="[https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css](https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css)" rel="stylesheet">
 <style>
   body { background-color: #f8f9fa; }
   .card { border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
@@ -341,7 +340,7 @@ ${proxyBlocks}
 proxy-groups:
 - name: 自动选择
   type: url-test
-  url: https://www.gstatic.com/generate_204
+  url: [https://www.gstatic.com/generate_204](https://www.gstatic.com/generate_204)
   interval: 300
   tolerance: 50
   proxies:
@@ -364,78 +363,4 @@ rules:
 
 export function getsbConfig(cfg, hostName) {
   const { userID } = cfg;
-  const endpoints = getAllEndpoints(cfg);
-
-  const outbounds = [
-    {
-      server: hostName,
-      server_port: 443,
-      tag: `${hostName}_VLESS`,
-      type: "vless",
-      uuid: userID,
-      tls: {
-        enabled: true,
-        server_name: hostName,
-        insecure: false,
-        utls: { enabled: true, fingerprint: "chrome" },
-      },
-      transport: {
-        type: "ws",
-        path: "/?ed=2560",
-        headers: { Host: [hostName] },
-      },
-    },
-    ...endpoints.map((item) => ({
-      server: item.ip,
-      server_port: Number(item.pt),
-      tag: `CF_${item.id}_${item.ip}_${item.pt}`,
-      type: "vless",
-      uuid: userID,
-      tls: {
-        enabled: true,
-        server_name: hostName,
-        insecure: false,
-        utls: { enabled: true, fingerprint: "chrome" },
-      },
-      transport: {
-        type: "ws",
-        path: "/?ed=2560",
-        headers: { Host: [hostName] },
-      },
-    })),
-  ];
-
-  const tags = outbounds.map((o) => o.tag);
-
-  return JSON.stringify({
-    log: { level: "info", timestamp: true },
-    inbounds: [
-      {
-        type: "tun",
-        tag: "tun-in",
-        address: ["172.19.0.1/30", "fd00::1/126"],
-        auto_route: true,
-        strict_route: true,
-        sniff: true,
-      },
-    ],
-    outbounds: [
-      {
-        tag: "select",
-        type: "selector",
-        default: "auto",
-        outbounds: ["auto", ...tags],
-      },
-      ...outbounds,
-      { tag: "direct", type: "direct" },
-      {
-        tag: "auto",
-        type: "urltest",
-        outbounds: tags,
-        url: "https://www.gstatic.com/generate_204",
-        interval: "1m",
-        tolerance: 50,
-      },
-    ],
-  }, null, 2);
-}
+  const endpoints = getAllEndpoints(cfg
