@@ -1,4 +1,4 @@
-// sub.js - 面板与订阅生成（纯直连低延迟版：同时输出原始 IP8~IP13 与新增 EXTRA_IPS 节点）
+// sub.js - 面板与订阅生成（纯直连低延迟版 · 防截断紧凑版）
 import { safeBase64Encode } from "./protocol.js";
 
 const XHTTP_EXTRA_CONFIG = JSON.stringify({
@@ -33,17 +33,15 @@ function buildWSNodeList(cfg, hostName) {
 
   const domainNodes = [
     `vless://${userID}@${hostName}:443?encryption=none&security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#${hostName}_VLESS_WS`,
-    `trojan://${userID}@${hostName}:443?security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#${hostName}_Trojan_WS`
+    `trojan://${userID}@${hostName}:443?security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#${hostName}_Trojan_WS`,
   ];
 
   const vlessLines = endpoints.map(
-    (e) =>
-      `vless://${userID}@${e.ip}:${e.pt}?encryption=none&security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_WS_${e.id}_${e.ip}_${e.pt}`
+    (e) => `vless://${userID}@${e.ip}:${e.pt}?encryption=none&security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_WS_${e.id}_${e.ip}_${e.pt}`
   );
 
   const trojanLines = [IP8, IP9, IP10].map(
-    (ip, idx) =>
-      `trojan://${userID}@${ip}:443?security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_Trojan_WS${idx + 1}_${ip}_443`
+    (ip, idx) => `trojan://${userID}@${ip}:443?security=tls&sni=${hostName}&fp=chrome&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_Trojan_WS${idx + 1}_${ip}_443`
   );
 
   return [...domainNodes, ...vlessLines, ...trojanLines];
@@ -56,28 +54,23 @@ function buildXHTTPNodeList(cfg, hostName) {
 
   const domainNodes = [
     `vless://${userID}@${hostName}:443?encryption=none&security=tls&sni=${hostName}&fp=chrome&alpn=h2&type=xhttp&host=${hostName}&path=%2Fxhttp&mode=stream-one&extra=${extraParam}#${hostName}_VLESS_XHTTP`,
-    `trojan://${userID}@${hostName}:443?security=tls&sni=${hostName}&fp=chrome&alpn=h2&type=xhttp&host=${hostName}&path=%2Fxhttp&mode=stream-one&extra=${extraParam}#${hostName}_Trojan_XHTTP`
+    `trojan://${userID}@${hostName}:443?security=tls&sni=${hostName}&fp=chrome&alpn=h2&type=xhttp&host=${hostName}&path=%2Fxhttp&mode=stream-one&extra=${extraParam}#${hostName}_Trojan_XHTTP`,
   ];
 
   const xhttpVlessLines = endpoints.map(
-    (e) =>
-      `vless://${userID}@${e.ip}:${e.pt}?encryption=none&security=tls&sni=${hostName}&fp=chrome&alpn=h2&type=xhttp&host=${hostName}&path=%2Fxhttp&mode=stream-one&extra=${extraParam}#CF_XHTTP_${e.id}_${e.ip}_${e.pt}`
+    (e) => `vless://${userID}@${e.ip}:${e.pt}?encryption=none&security=tls&sni=${hostName}&fp=chrome&alpn=h2&type=xhttp&host=${hostName}&path=%2Fxhttp&mode=stream-one&extra=${extraParam}#CF_XHTTP_${e.id}_${e.ip}_${e.pt}`
   );
 
   const xhttpTrojanLines = [IP8, IP9, IP10].map(
-    (ip, idx) =>
-      `trojan://${userID}@${ip}:443?security=tls&sni=${hostName}&fp=chrome&alpn=h2&type=xhttp&host=${hostName}&path=%2Fxhttp&mode=stream-one&extra=${extraParam}#CF_Trojan_XHTTP${idx + 1}_${ip}_443`
+    (ip, idx) => `trojan://${userID}@${ip}:443?security=tls&sni=${hostName}&fp=chrome&alpn=h2&type=xhttp&host=${hostName}&path=%2Fxhttp&mode=stream-one&extra=${extraParam}#CF_Trojan_XHTTP${idx + 1}_${ip}_443`
   );
 
   return [...domainNodes, ...xhttpVlessLines, ...xhttpTrojanLines];
 }
 
-function buildNodeList(cfg, hostName) {
-  return [...buildWSNodeList(cfg, hostName), ...buildXHTTPNodeList(cfg, hostName)].join("\n");
-}
-
 export function gettyConfig(cfg, hostName) {
-  return safeBase64Encode(buildNodeList(cfg, hostName));
+  const all = [...buildWSNodeList(cfg, hostName), ...buildXHTTPNodeList(cfg, hostName)].join("\n");
+  return safeBase64Encode(all);
 }
 
 export function getxhttpConfig(cfg, hostName) {
@@ -100,7 +93,6 @@ export function getvlessConfig(cfg, hostName) {
 
   const pvlesswstls = `vless://${userID}@${hostName}:443?encryption=none&security=tls&type=ws&host=${hostName}&sni=${hostName}&fp=chrome&path=%2F%3Fed%3D2560#${hostName}_VLESS_WS`;
   const ptrojanwstls = `trojan://${userID}@${hostName}:443?security=tls&type=ws&host=${hostName}&sni=${hostName}&fp=chrome&path=%2F%3Fed%3D2560#${hostName}_Trojan_WS`;
-
   const pvlessxhttp = `vless://${userID}@${hostName}:443?encryption=none&security=tls&type=xhttp&host=${hostName}&sni=${hostName}&fp=chrome&alpn=h2&path=%2Fxhttp&mode=stream-one&extra=${extraParam}#${hostName}_VLESS_XHTTP`;
   const ptrojanxhttp = `trojan://${userID}@${hostName}:443?security=tls&type=xhttp&host=${hostName}&sni=${hostName}&fp=chrome&alpn=h2&path=%2Fxhttp&mode=stream-one&extra=${extraParam}#${hostName}_Trojan_XHTTP`;
 
@@ -117,59 +109,35 @@ export function getvlessConfig(cfg, hostName) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cloudflare 节点管理面板</title>
-<link href="[https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css](https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css)" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
   body { background-color: #f8f9fa; }
   .card { border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
-  .code-box {
-    max-width: 100%;
-    word-break: break-all;
-    background: #f1f3f5;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-family: monospace;
-    font-size: 0.85rem;
-    max-height: 68px;
-    overflow-y: auto;
-  }
+  .code-box { max-width: 100%; word-break: break-all; background: #f1f3f5; padding: 6px 10px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; max-height: 68px; overflow-y: auto; }
   .btn-copy { min-width: 82px; transition: all 0.2s ease; }
 </style>
 <script>
 function handleCopy(btn) {
   const text = btn.getAttribute('data-clip') || '';
   if (!text) return;
-
-  const originalHtml = btn.getAttribute('data-orig') || btn.innerHTML;
-  if (!btn.getAttribute('data-orig')) {
-    btn.setAttribute('data-orig', originalHtml);
-  }
-
-  const showSuccess = () => {
+  const orig = btn.getAttribute('data-orig') || btn.innerHTML;
+  if (!btn.getAttribute('data-orig')) btn.setAttribute('data-orig', orig);
+  const done = () => {
     btn.innerHTML = '✅ 已复制';
     btn.classList.add('btn-dark');
-    if (btn._timer) clearTimeout(btn._timer);
-    btn._timer = setTimeout(() => {
-      btn.innerHTML = originalHtml;
-      btn.classList.remove('btn-dark');
-    }, 1500);
+    if (btn._t) clearTimeout(btn._t);
+    btn._t = setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('btn-dark'); }, 1500);
   };
-
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(showSuccess).catch(() => fallbackCopy(text, showSuccess));
-  } else {
-    fallbackCopy(text, showSuccess);
-  }
+    navigator.clipboard.writeText(text).then(done).catch(() => fallback(text, done));
+  } else { fallback(text, done); }
 }
-
-function fallbackCopy(text, callback) {
-  const textarea = document.createElement('textarea');
-  textarea.value = text;
-  textarea.style.position = 'fixed';
-  textarea.style.opacity = '0';
-  document.body.appendChild(textarea);
-  textarea.select();
-  try { document.execCommand('copy'); callback(); } catch (e) {}
-  document.body.removeChild(textarea);
+function fallback(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); cb(); } catch (e) {}
+  document.body.removeChild(ta);
 }
 </script>
 </head>
@@ -177,12 +145,8 @@ function fallbackCopy(text, callback) {
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
     <h3 class="mb-0 fw-bold">Cloudflare 纯 TLS 节点面板（WS + XHTTP 双引擎）</h3>
-    <span class="badge bg-success mt-2 mt-sm-0 p-2">
-      当前模式：纯直连低延迟（已禁用 ProxyIP）
-    </span>
+    <span class="badge bg-success mt-2 mt-sm-0 p-2">当前模式：纯直连低延迟（已禁用 ProxyIP）</span>
   </div>
-
-  <!-- 1. WebSocket 节点区 -->
   <div class="card">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
       <h5 class="mb-0">1. WebSocket (WS) 推荐单节点</h5>
@@ -193,22 +157,16 @@ function fallbackCopy(text, callback) {
         <tr>
           <td style="width: 140px;"><strong>VLESS-WS</strong></td>
           <td><div class="code-box">${escapeAttr(pvlesswstls)}</div></td>
-          <td style="width: 100px;" class="text-center">
-            <button class="btn btn-primary btn-sm btn-copy" data-clip="${escapeAttr(pvlesswstls)}" onclick="handleCopy(this)">复制</button>
-          </td>
+          <td style="width: 100px;" class="text-center"><button class="btn btn-primary btn-sm btn-copy" data-clip="${escapeAttr(pvlesswstls)}" onclick="handleCopy(this)">复制</button></td>
         </tr>
         <tr>
           <td><strong>Trojan-WS</strong></td>
           <td><div class="code-box">${escapeAttr(ptrojanwstls)}</div></td>
-          <td class="text-center">
-            <button class="btn btn-success btn-sm btn-copy" data-clip="${escapeAttr(ptrojanwstls)}" onclick="handleCopy(this)">复制</button>
-          </td>
+          <td class="text-center"><button class="btn btn-success btn-sm btn-copy" data-clip="${escapeAttr(ptrojanwstls)}" onclick="handleCopy(this)">复制</button></td>
         </tr>
       </table>
     </div>
   </div>
-
-  <!-- 2. XHTTP 节点区 -->
   <div class="card">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
       <h5 class="mb-0">2. XHTTP (stream-one) 推荐单节点</h5>
@@ -219,26 +177,18 @@ function fallbackCopy(text, callback) {
         <tr>
           <td style="width: 140px;"><strong>VLESS-XHTTP</strong></td>
           <td><div class="code-box">${escapeAttr(pvlessxhttp)}</div></td>
-          <td style="width: 100px;" class="text-center">
-            <button class="btn btn-warning btn-sm btn-copy" data-clip="${escapeAttr(pvlessxhttp)}" onclick="handleCopy(this)">复制</button>
-          </td>
+          <td style="width: 100px;" class="text-center"><button class="btn btn-warning btn-sm btn-copy" data-clip="${escapeAttr(pvlessxhttp)}" onclick="handleCopy(this)">复制</button></td>
         </tr>
         <tr>
           <td><strong>Trojan-XHTTP</strong></td>
           <td><div class="code-box">${escapeAttr(ptrojanxhttp)}</div></td>
-          <td class="text-center">
-            <button class="btn btn-warning btn-sm btn-copy" data-clip="${escapeAttr(ptrojanxhttp)}" onclick="handleCopy(this)">复制</button>
-          </td>
+          <td class="text-center"><button class="btn btn-warning btn-sm btn-copy" data-clip="${escapeAttr(ptrojanxhttp)}" onclick="handleCopy(this)">复制</button></td>
         </tr>
       </table>
     </div>
   </div>
-
-  <!-- 3. 订阅链接区 -->
   <div class="card">
-    <div class="card-header bg-white">
-      <h5 class="mb-0">3. 聚合订阅链接（含原始 V8~V13 + 新增 V14~V22 优选节点）</h5>
-    </div>
+    <div class="card-header bg-white"><h5 class="mb-0">3. 聚合订阅链接（含原始 V8~V13 + 新增 V14~V22 优选节点）</h5></div>
     <div class="card-body p-0">
       <table class="table table-bordered align-middle mb-0">
         <tr>
@@ -252,30 +202,22 @@ function fallbackCopy(text, callback) {
         <tr>
           <th>通用订阅（WS + XHTTP）</th>
           <td><div class="code-box">${escapeAttr(ty)}</div></td>
-          <td class="text-center">
-            <button class="btn btn-primary btn-sm btn-copy" data-clip="${escapeAttr(ty)}" onclick="handleCopy(this)">复制</button>
-          </td>
+          <td class="text-center"><button class="btn btn-primary btn-sm btn-copy" data-clip="${escapeAttr(ty)}" onclick="handleCopy(this)">复制</button></td>
         </tr>
         <tr>
           <th>XHTTP 独立订阅</th>
           <td><div class="code-box">${escapeAttr(xhttpSub)}</div></td>
-          <td class="text-center">
-            <button class="btn btn-warning btn-sm btn-copy" data-clip="${escapeAttr(xhttpSub)}" onclick="handleCopy(this)">复制</button>
-          </td>
+          <td class="text-center"><button class="btn btn-warning btn-sm btn-copy" data-clip="${escapeAttr(xhttpSub)}" onclick="handleCopy(this)">复制</button></td>
         </tr>
         <tr>
           <th>Clash 订阅（纯 WS）</th>
           <td><div class="code-box">${escapeAttr(cl)}</div></td>
-          <td class="text-center">
-            <button class="btn btn-primary btn-sm btn-copy" data-clip="${escapeAttr(cl)}" onclick="handleCopy(this)">复制</button>
-          </td>
+          <td class="text-center"><button class="btn btn-primary btn-sm btn-copy" data-clip="${escapeAttr(cl)}" onclick="handleCopy(this)">复制</button></td>
         </tr>
         <tr>
           <th>Sing-box 订阅（纯 WS）</th>
           <td><div class="code-box">${escapeAttr(sb)}</div></td>
-          <td class="text-center">
-            <button class="btn btn-primary btn-sm btn-copy" data-clip="${escapeAttr(sb)}" onclick="handleCopy(this)">复制</button>
-          </td>
+          <td class="text-center"><button class="btn btn-primary btn-sm btn-copy" data-clip="${escapeAttr(sb)}" onclick="handleCopy(this)">复制</button></td>
         </tr>
       </table>
     </div>
@@ -291,26 +233,10 @@ export function getclConfig(cfg, hostName) {
   const endpoints = getAllEndpoints(cfg);
 
   const proxyBlocks = endpoints
-    .map(
-      (e) => `- name: CF_${e.id}_${e.ip}_${e.pt}
-  type: vless
-  server: ${clean(e.ip)}
-  port: ${e.pt}
-  uuid: ${userID}
-  udp: true
-  tls: true
-  network: ws
-  servername: ${hostName}
-  ws-opts:
-    path: "/?ed=2560"
-    headers:
-      Host: ${hostName}`
-    )
+    .map((e) => `- name: CF_${e.id}_${e.ip}_${e.pt}\n  type: vless\n  server: ${clean(e.ip)}\n  port: ${e.pt}\n  uuid: ${userID}\n  udp: true\n  tls: true\n  network: ws\n  servername: ${hostName}\n  ws-opts:\n    path: "/?ed=2560"\n    headers:\n      Host: ${hostName}`)
     .join("\n\n");
 
-  const proxyNames = endpoints
-    .map((e) => `    - CF_${e.id}_${e.ip}_${e.pt}`)
-    .join("\n");
+  const proxyNames = endpoints.map((e) => `    - CF_${e.id}_${e.ip}_${e.pt}`).join("\n");
 
   return `port: 7890
 allow-lan: true
@@ -340,7 +266,7 @@ ${proxyBlocks}
 proxy-groups:
 - name: 自动选择
   type: url-test
-  url: [https://www.gstatic.com/generate_204](https://www.gstatic.com/generate_204)
+  url: https://www.gstatic.com/generate_204
   interval: 300
   tolerance: 50
   proxies:
@@ -363,4 +289,33 @@ rules:
 
 export function getsbConfig(cfg, hostName) {
   const { userID } = cfg;
-  const endpoints = getAllEndpoints(cfg
+  const endpoints = getAllEndpoints(cfg);
+  const makeNode = (tag, server, port) => ({
+    server,
+    server_port: Number(port),
+    tag,
+    type: "vless",
+    uuid: userID,
+    tls: { enabled: true, server_name: hostName, insecure: false, utls: { enabled: true, fingerprint: "chrome" } },
+    transport: { type: "ws", path: "/?ed=2560", headers: { Host: [hostName] } },
+  });
+
+  const outbounds = [
+    makeNode(`${hostName}_VLESS`, hostName, 443),
+    ...endpoints.map((e) => makeNode(`CF_${e.id}_${e.ip}_${e.pt}`, e.ip, e.pt)),
+  ];
+  const tags = outbounds.map((o) => o.tag);
+
+  const sbObj = {
+    log: { level: "info", timestamp: true },
+    inbounds: [{ type: "tun", tag: "tun-in", address: ["172.19.0.1/30", "fd00::1/126"], auto_route: true, strict_route: true, sniff: true }],
+    outbounds: [
+      { tag: "select", type: "selector", default: "auto", outbounds: ["auto", ...tags] },
+      ...outbounds,
+      { tag: "direct", type: "direct" },
+      { tag: "auto", type: "urltest", outbounds: tags, url: "https://www.gstatic.com/generate_204", interval: "1m", tolerance: 50 },
+    ],
+  };
+  return JSON.stringify(sbObj, null, 2);
+}
+// === 文件结束 ===
